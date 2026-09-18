@@ -11,6 +11,7 @@ final class FinderSync: FIFinderSync {
 
     private let templateMapLock = NSLock()
     private var templateRelativePathByTag: [Int: String] = [:]
+    private var authorizationObserver: NSObjectProtocol?
     private lazy var menuIcon: NSImage? = {
         let applicationURL = Bundle.main.bundleURL
             .deletingLastPathComponent()
@@ -25,15 +26,34 @@ final class FinderSync: FIFinderSync {
     override init() {
         super.init()
         Self.runtimeLog.started()
+        authorizationObserver = DistributedNotificationCenter.default().addObserver(
+            forName: DirectoryAuthorizationStore.changeNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            Self.creationQueue.async {
+                Self.prepareFinderAuthorizations()
+            }
+        }
+        Self.creationQueue.async {
+            Self.prepareFinderAuthorizations()
+        }
         FIFinderSyncController.default().directoryURLs = [
             URL(fileURLWithPath: "/", isDirectory: true)
         ]
+    }
+
+    deinit {
+        if let authorizationObserver {
+            DistributedNotificationCenter.default().removeObserver(authorizationObserver)
+        }
     }
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu? {
         guard menuKind == .contextualMenuForContainer || menuKind == .contextualMenuForItems else {
             return nil
         }
+        Self.creationQueue.async { Self.prepareFinderAuthorizations() }
         let targetKind: FinderTargetKind = menuKind == .contextualMenuForContainer
             ? .container
             : .item
@@ -57,27 +77,23 @@ final class FinderSync: FIFinderSync {
             return rootMenu
         }
 
-        let targetDirectory: URL
+        let target: AuthorizedFinderTarget
         do {
-            targetDirectory = try resolvedTargetDirectory(kind: targetKind)
+            target = try resolvedTargetDirectory(kind: targetKind)
+        } catch DirectoryAuthorizationError.sharedStorageUnavailable {
+            Self.runtimeLog.authorizationLoadFailed(DirectoryAuthorizationError.sharedStorageUnavailable)
+            return menuWithStatus(String(localized: "finder.menu.authorization-unavailable"))
+        } catch DirectoryAuthorizationError.invalidConfiguration {
+            Self.runtimeLog.authorizationLoadFailed(DirectoryAuthorizationError.invalidConfiguration)
+            return menuWithStatus(String(localized: "finder.menu.authorization-unavailable"))
+        } catch FinderTargetResolutionError.targetUnavailable {
+            Self.runtimeLog.targetUnavailable(FinderTargetResolutionError.targetUnavailable)
+            return menuWithStatus(String(localized: "finder.menu.current-folder-unavailable"))
         } catch {
             Self.runtimeLog.targetUnavailable(error)
-            return menuWithStatus(String(localized: "finder.menu.current-folder-unavailable"))
-        }
-
-        let hasAuthorization: Bool
-        do {
-            hasAuthorization = try DirectoryAuthorizationStore.shared.hasAuthorization(
-                containing: targetDirectory
-            )
-        } catch {
-            Self.runtimeLog.authorizationLoadFailed(error)
-            return menuWithStatus(String(localized: "finder.menu.authorization-unavailable"))
-        }
-        guard hasAuthorization else {
-            Self.runtimeLog.targetUnauthorized(path: targetDirectory.path)
             return menuWithStatus(String(localized: "finder.menu.current-folder-unauthorized"))
         }
+        defer { withExtendedLifetime(target) {} }
 
         let templates: [TemplateItem]
         do {
@@ -98,7 +114,7 @@ final class FinderSync: FIFinderSync {
         }
 
         let templatesByTag = Dictionary(grouping: templates) {
-            Self.menuTag(for: $0.relativePath)
+            FinderMenuIdentifier.tag(for: $0.relativePath)
         }
         let currentTemplateRelativePathByTag = templatesByTag.compactMapValues { matches in
             matches.count == 1 ? matches[0].relativePath : nil
@@ -127,36 +143,37 @@ final class FinderSync: FIFinderSync {
     private func createFromTemplate(_ sender: NSMenuItem, targetKind: FinderTargetKind) {
         let tag = sender.tag
         let relativePath: String
-        let targetDirectory: URL
         do {
             relativePath = try resolvedTemplateRelativePath(for: tag)
-            // Finder 上下文只在菜单回调及其动作中有效, 必须在异步创建前捕获
-            targetDirectory = try resolvedTargetDirectory(kind: targetKind)
         } catch {
             Self.runtimeLog.menuResolutionFailed(identifier: tag, error: error)
             return
         }
-        Self.runtimeLog.creationRequested(
-            template: relativePath,
-            targetPath: targetDirectory.path
-        )
+        // Finder 上下文只在菜单回调及其动作中有效, 必须在异步创建前捕获
+        let controller = FIFinderSyncController.default()
+        let targetedURL = controller.targetedURL()
+        let selectedItemURLs = controller.selectedItemURLs()
         Self.creationQueue.async {
-            Self.performCreation(relativePath: relativePath, targetDirectory: targetDirectory)
+            Self.performCreation(
+                relativePath: relativePath, targetedURL: targetedURL,
+                selectedItemURLs: selectedItemURLs, targetKind: targetKind
+            )
         }
     }
 
     private nonisolated static func performCreation(
         relativePath: String,
-        targetDirectory: URL
+        targetedURL: URL?, selectedItemURLs: [URL]?, targetKind: FinderTargetKind
     ) {
         do {
-            let targetAccess = try DirectoryAuthorizationStore.shared.beginAccess(
-                containing: targetDirectory
+            let targetAccess = try DirectoryAuthorizationStore.shared.resolveFinderTarget(
+                targetedURL: targetedURL, selectedItemURLs: selectedItemURLs, kind: targetKind
             )
+            Self.runtimeLog.creationRequested(template: relativePath, targetPath: targetAccess.url.path)
             let createdURL = try withExtendedLifetime(targetAccess) {
                 try FileCreationService.shared.createFile(
                     fromTemplateAtRelativePath: relativePath,
-                    in: targetDirectory
+                    in: targetAccess.url
                 )
             }
             Self.runtimeLog.creationSucceeded(path: createdURL.path)
@@ -165,9 +182,22 @@ final class FinderSync: FIFinderSync {
         }
     }
 
-    private func resolvedTargetDirectory(kind: FinderTargetKind) throws -> URL {
+    private nonisolated static func prepareFinderAuthorizations() {
+        do {
+            let count = try DirectoryAuthorizationStore.shared.prepareFinderAuthorizations { path, error in
+                runtimeLog.authorizationPreparationFailed(error, path: path)
+            }
+            if count > 0 {
+                runtimeLog.authorizationsPrepared(count: count)
+            }
+        } catch {
+            runtimeLog.authorizationPreparationFailed(error)
+        }
+    }
+
+    private func resolvedTargetDirectory(kind: FinderTargetKind) throws -> AuthorizedFinderTarget {
         let controller = FIFinderSyncController.default()
-        return try FinderTargetResolver.resolve(
+        return try DirectoryAuthorizationStore.shared.resolveFinderTarget(
             targetedURL: controller.targetedURL(),
             selectedItemURLs: controller.selectedItemURLs(),
             kind: kind
@@ -194,7 +224,7 @@ final class FinderSync: FIFinderSync {
                 item.submenu = submenu
                 menu.addItem(item)
             case let .template(template):
-                let tag = Self.menuTag(for: template.relativePath)
+                let tag = FinderMenuIdentifier.tag(for: template.relativePath)
                 let item = NSMenuItem(
                     title: template.menuDisplayName,
                     action: targetKind == .container
@@ -238,14 +268,16 @@ final class FinderSync: FIFinderSync {
         // Finder 可能在动作执行前重新创建扩展实例
         // 这里只接受唯一匹配的稳定标识, 避免列表变化后创建错误的模板
         let templates = try TemplateCatalog.shared.snapshot().filter(\.isEnabled)
-        let matches = templates.filter { Self.menuTag(for: $0.relativePath) == tag }
+        let matches = templates.filter { FinderMenuIdentifier.tag(for: $0.relativePath) == tag }
         guard matches.count == 1, let template = matches.first else {
             throw FileCreationError.invalidTemplatePath
         }
         return template.relativePath
     }
+}
 
-    private nonisolated static func menuTag(for relativePath: String) -> Int {
+private nonisolated enum FinderMenuIdentifier {
+    static func tag(for relativePath: String) -> Int {
         // 使用固定的 64 位 FNV-1a, 避免 Swift 随机 Hashable 导致跨进程结果变化
         var hash: UInt64 = 14695981039346656037
         for byte in relativePath.utf8 {

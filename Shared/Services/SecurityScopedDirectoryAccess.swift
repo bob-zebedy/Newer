@@ -1,14 +1,25 @@
 import Foundation
 
+nonisolated enum SecurityScopedDirectoryAccessError: Error {
+    case accessDenied
+}
+
 final nonisolated class SecurityScopedDirectoryAccess {
     let directoryURL: URL
+    private let isAccessing: Bool
 
-    init(directoryURL: URL) {
+    init(directoryURL: URL) throws {
         self.directoryURL = directoryURL
+        isAccessing = directoryURL.startAccessingSecurityScopedResource()
+        guard isAccessing else {
+            throw SecurityScopedDirectoryAccessError.accessDenied
+        }
     }
 
     deinit {
-        directoryURL.stopAccessingSecurityScopedResource()
+        if isAccessing {
+            directoryURL.stopAccessingSecurityScopedResource()
+        }
     }
 
     static func contains(_ candidateURL: URL, in directoryURL: URL) -> Bool {
@@ -38,16 +49,9 @@ final nonisolated class SecurityScopedDirectoryAccess {
     }
 
     static func deviceIdentifier(for url: URL) -> UInt64? {
-        var candidate = url.resolvingSymlinksInPath().standardizedFileURL
-        while true {
-            if let attributes = try? FileManager.default.attributesOfItem(atPath: candidate.path),
-               let deviceIdentifier = attributes[.systemNumber] as? NSNumber {
-                return deviceIdentifier.uint64Value
-            }
-
-            let parent = candidate.deletingLastPathComponent()
-            guard parent.path != candidate.path else { return nil }
-            candidate = parent
-        }
+        let resolvedURL = url.resolvingSymlinksInPath().standardizedFileURL
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: resolvedURL.path),
+              let identifier = attributes[.systemNumber] as? NSNumber else { return nil }
+        return identifier.uint64Value
     }
 }

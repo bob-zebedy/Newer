@@ -33,6 +33,25 @@ nonisolated struct FinderRuntimeLog: Sendable {
         )
     }
 
+    func authorizationsPrepared(count: Int) {
+        logger.notice(
+            category: .authorization,
+            event: .finderAuthorizationsPrepared,
+            message: String(localized: "log.finder.authorizations-prepared"),
+            fields: [.init(name: .count, value: String(count))]
+        )
+    }
+
+    func authorizationPreparationFailed(_ error: Error, path: String? = nil) {
+        logger.error(
+            category: .authorization,
+            event: .finderAuthorizationPreparationFailed,
+            message: String(localized: "log.finder.authorization-prepare-failed"),
+            error: error,
+            fields: path.map { [.init(name: .path, value: $0)] } ?? []
+        )
+    }
+
     func targetUnauthorized(path: String) {
         logger.warning(
             category: .finderMenu,

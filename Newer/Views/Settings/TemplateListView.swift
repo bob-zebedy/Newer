@@ -10,11 +10,8 @@ struct TemplateListView: View {
     @GestureState private var isDragging = false
     @State private var expandedDirectories: Set<String> = []
     @State private var drag: TemplateDragState?
-    @State private var dragParentRelativePath: String?
-    @State private var translation: CGSize = .zero
     @State private var dragCancelled = false
     @State private var rowFrames: [TemplateEntry.EntryID: CGRect] = [:]
-    @State private var dragRowFrames: [TemplateEntry.EntryID: CGRect] = [:]
 
     var body: some View {
         ScrollView {
@@ -62,9 +59,8 @@ struct TemplateListView: View {
             }
         }
         .onChange(of: items.map(\.relativePath)) { _, _ in
-            guard let drag, !drag.isSettling,
-                  let parent = dragParentRelativePath else { return }
-            if siblingEntries(within: parent).map(\.id) != drag.initialEntries.map(\.id) {
+            guard let drag, !drag.isSettling else { return }
+            if siblingEntries(within: drag.parentRelativePath).map(\.id) != drag.initialEntries.map(\.id) {
                 cancelDrag()
             }
         }
@@ -88,11 +84,11 @@ private extension TemplateListView {
     }
 
     private var displayedHierarchy: [TemplateEntry] {
-        guard let drag, let parent = dragParentRelativePath else { return hierarchy }
+        guard let drag else { return hierarchy }
         var result = hierarchy
         guard TemplateEntry.replaceEntries(
             in: &result,
-            parentRelativePath: parent,
+            parentRelativePath: drag.parentRelativePath,
             with: drag.displayedEntries
         ) else { return hierarchy }
         return result
@@ -100,11 +96,11 @@ private extension TemplateListView {
 
     @ViewBuilder
     private var draggedRow: some View {
-        if let drag, let frame = dragRowFrames[drag.entry.id] {
+        if let drag, let frame = drag.rowFrames[drag.entry.id] {
             entryContent(
                 drag.entry,
                 depth: 0,
-                parentRelativePath: dragParentRelativePath ?? "",
+                parentRelativePath: drag.parentRelativePath,
                 showsIndentation: false,
                 isInteractive: false
             )
@@ -116,8 +112,8 @@ private extension TemplateListView {
             }
             .shadow(color: .black.opacity(0.24), radius: 8, y: 4)
             .offset(
-                x: frame.minX + translation.width,
-                y: frame.minY + translation.height
+                x: frame.minX + drag.translation.width,
+                y: frame.minY + drag.translation.height
             )
             .allowsHitTesting(false)
             .zIndex(1)
@@ -271,53 +267,52 @@ private extension TemplateListView {
                 if drag == nil {
                     drag = TemplateDragState(
                         entryID: entry.id,
-                        entries: siblingEntries(within: parentRelativePath)
+                        entries: siblingEntries(within: parentRelativePath),
+                        parentRelativePath: parentRelativePath,
+                        rowFrames: rowFrames
                     )
-                    dragParentRelativePath = parentRelativePath
-                    dragRowFrames = rowFrames
                 }
                 guard var current = drag, !current.isSettling,
                       current.entry.id == entry.id,
-                      let originFrame = dragRowFrames[entry.id] else { return }
-                translation = value.translation
+                      let originFrame = current.rowFrames[entry.id] else { return }
+                current.translation = value.translation
                 let draggedCenterY = originFrame.midY + value.translation.height
                 if let targetID = closestSiblingID(
                     to: draggedCenterY,
-                    siblings: current.initialEntries
+                    in: current
                 ) {
                     current.updateTarget(entryID: targetID)
-                    drag = current
                 }
+                drag = current
             }
             .onEnded { _ in finishDrag() }
     }
 
     private func closestSiblingID(
         to yPosition: CGFloat,
-        siblings: [TemplateEntry]
+        in drag: TemplateDragState
     ) -> TemplateEntry.EntryID? {
-        siblings.compactMap { entry -> (TemplateEntry.EntryID, CGFloat)? in
-            guard let frame = dragRowFrames[entry.id] else { return nil }
+        drag.initialEntries.compactMap { entry -> (TemplateEntry.EntryID, CGFloat)? in
+            guard let frame = drag.rowFrames[entry.id] else { return nil }
             return (entry.id, abs(frame.midY - yPosition))
         }.min { $0.1 < $1.1 }?.0
     }
 
     private func finishDrag() {
         guard var current = drag, !current.isSettling,
-              let parent = dragParentRelativePath,
-              siblingEntries(within: parent).map(\.id) == current.initialEntries.map(\.id) else {
+              siblingEntries(within: current.parentRelativePath).map(\.id) == current.initialEntries.map(\.id) else {
             cancelDrag()
             return
         }
 
         current.isSettling = true
         drag = current
-        onMove(parent, IndexSet(integer: current.originIndex), current.destinationOffset)
+        onMove(current.parentRelativePath, IndexSet(integer: current.originIndex), current.destinationOffset)
 
-        let targetFrame = dragRowFrames[current.initialEntries[current.targetIndex].id]
-        let originFrame = dragRowFrames[current.entry.id]
+        let targetFrame = current.rowFrames[current.initialEntries[current.targetIndex].id]
+        let originFrame = current.rowFrames[current.entry.id]
         withAnimation(.smooth(duration: 0.14), completionCriteria: .logicallyComplete) {
-            translation = CGSize(
+            drag?.translation = CGSize(
                 width: (targetFrame?.minX ?? 0) - (originFrame?.minX ?? 0),
                 height: (targetFrame?.minY ?? 0) - (originFrame?.minY ?? 0)
             )
@@ -330,9 +325,6 @@ private extension TemplateListView {
     private func cancelDrag() {
         dragCancelled = isDragging
         drag = nil
-        dragParentRelativePath = nil
-        dragRowFrames = [:]
-        translation = .zero
     }
 
     private func siblingEntries(within parentRelativePath: String) -> [TemplateEntry] {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AuthorizedDirectoryRow: View {
     let directory: AuthorizedDirectory
+    var isFinderExtensionDisabled = false
     let onRemove: () -> Void
 
     private var isExternalDisk: Bool {
@@ -32,11 +33,30 @@ struct AuthorizedDirectoryRow: View {
 
             Spacer()
 
+            if let statusTitle {
+                Text(statusTitle)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+
             Button(action: onRemove) {
                 Image(systemName: "minus.circle")
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
+        }
+    }
+
+    private var statusTitle: String? {
+        switch directory.status {
+        case .unavailable:
+            String(localized: "settings.permissions.file-access.unavailable")
+        case .needsAuthorization:
+            String(localized: "settings.permissions.file-access.needs-authorization")
+        case .ready, .waitingForExtension, .retryRequired:
+            isFinderExtensionDisabled
+                ? String(localized: "settings.permissions.file-access.extension-disabled")
+                : nil
         }
     }
 }

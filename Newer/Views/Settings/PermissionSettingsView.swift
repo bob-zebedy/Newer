@@ -69,7 +69,10 @@ struct PermissionSettingsView: View {
                 } else {
                     VStack(spacing: 0) {
                         ForEach(Array(model.authorizedDirectories.enumerated()), id: \.element.id) { index, directory in
-                            AuthorizedDirectoryRow(directory: directory) {
+                            AuthorizedDirectoryRow(
+                                directory: directory,
+                                isFinderExtensionDisabled: model.extensionStatus == .disabled
+                            ) {
                                 model.removeDirectoryAuthorization(directory)
                             }
                             .padding(.horizontal, 16)

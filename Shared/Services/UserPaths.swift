@@ -43,6 +43,9 @@ nonisolated enum UserPaths {
     static let directoryAuthorizationsFile = appGroupContainer
         .appendingPathComponent("directory-authorizations.plist", isDirectory: false)
 
+    static let directoryAuthorizationsLockFile = appGroupContainer
+        .appendingPathComponent("directory-authorizations.lock", isDirectory: false)
+
     static let runtimeLogFile = appGroupContainer
         .appendingPathComponent("runtime.log", isDirectory: false)
 }

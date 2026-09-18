@@ -6,13 +6,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can't access the authorized folder: %@"
+            "value" : "Can't access folder: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法访问已授权目录\n%@"
+            "value" : "无法访问目录: %@"
           }
         }
       }
@@ -22,13 +22,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folder access authorization is no longer valid. Grant access again."
+            "value" : "Folder access is no longer valid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目录访问授权已失效, 请重新授权"
+            "value" : "目录授权已失效"
+          }
+        }
+      }
+    },
+    "error.authorization.invalid-configuration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access records are damaged or use an unsupported version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授权记录损坏或版本不支持"
           }
         }
       }
@@ -38,13 +54,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folder access has not been granted. Grant access first."
+            "value" : "No folder access"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未授权访问目录, 请先完成授权"
+            "value" : "尚未授权目录"
           }
         }
       }
@@ -54,13 +70,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folder isn't authorized: %@"
+            "value" : "Access not granted for this folder: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前目录不在授权范围内: %@"
+            "value" : "尚未授权此目录: %@"
           }
         }
       }
@@ -70,29 +86,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to save authorization."
+            "value" : "Can't read or save access records"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存授权信息"
-          }
-        }
-      }
-    },
-    "error.template.metadata-unavailable" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Can't read template information: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法获取模板信息: %@"
+            "value" : "无法读写授权记录"
           }
         }
       }
@@ -102,7 +102,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid template path."
+            "value" : "Invalid template path"
           }
         },
         "zh-Hans" : {
@@ -118,13 +118,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The destination is missing or not a folder\n%@"
+            "value" : "Destination folder is missing or unavailable: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标不存在或非目录\n%@"
+            "value" : "目标文件夹不存在或无法使用: %@"
           }
         }
       }
@@ -150,13 +150,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can't create a unique name for “%@”."
+            "value" : "Can't find an available file name: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法为「%@」生成唯一文件名"
+            "value" : "无法找到可用的文件名: %@"
+          }
+        }
+      }
+    },
+    "error.template.metadata-unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read template details: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取模板信息: %@"
           }
         }
       }
@@ -273,18 +289,66 @@
         }
       }
     },
-    "log.finder.started" : {
+    "log.finder.authorization-prepare-failed" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finder extension started"
+            "value" : "Folder access is not ready"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finder 扩展启动"
+            "value" : "目录授权未生效"
+          }
+        }
+      }
+    },
+    "log.finder.authorization-read-failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to read folder access"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取目录授权失败"
+          }
+        }
+      }
+    },
+    "log.finder.authorizations-prepared" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder access is ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目录授权已生效"
+          }
+        }
+      }
+    },
+    "log.finder.creation-failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create file"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件创建失败"
           }
         }
       }
@@ -294,13 +358,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "File creation requested"
+            "value" : "Creating file"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "收到创建请求"
+            "value" : "开始创建文件"
           }
         }
       }
@@ -317,22 +381,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "文件创建成功"
-          }
-        }
-      }
-    },
-    "log.finder.identifier-conflict" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Menu identifier conflict"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "菜单标识冲突"
           }
         }
       }
@@ -369,18 +417,50 @@
         }
       }
     },
-    "log.finder.authorization-read-failed" : {
+    "log.finder.identifier-conflict" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to load access settings"
+            "value" : "Menu items conflict"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "读取授权失败"
+            "value" : "菜单项冲突"
+          }
+        }
+      }
+    },
+    "log.finder.menu-resolve-failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't identify the selected template"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确定所选模板"
+          }
+        }
+      }
+    },
+    "log.finder.started" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder extension started"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder 扩展已启动"
           }
         }
       }
@@ -397,38 +477,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "读取模板失败"
-          }
-        }
-      }
-    },
-    "log.finder.menu-resolve-failed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to resolve menu item"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解析模板菜单失败"
-          }
-        }
-      }
-    },
-    "log.finder.creation-failed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to create file"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件创建失败"
           }
         }
       }

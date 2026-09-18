@@ -15,6 +15,10 @@ final class TemplateSettingsModel: ObservableObject {
     private let authorizationStore: DirectoryAuthorizationStore
     private let runtimeLog: ApplicationRuntimeLog
     private var scheduledTemplateRefresh: Task<Void, Never>?
+    private var authorizationRefresh: Task<Void, Never>?
+    private var retryPendingAuthorizations = true
+    private var authorizationRefreshRequested = false
+    private var lastAuthorizationLoadError: String?
     private lazy var templateDirectoryMonitor = TemplateDirectoryMonitor { [weak self] in
         self?.scheduleTemplateRefresh()
     }
@@ -70,19 +74,22 @@ final class TemplateSettingsModel: ObservableObject {
                 guard normalizedURL.deletingLastPathComponent() == volumesURL else {
                     throw ExternalDiskAuthorizationError.selectVolumeRoot
                 }
-                return normalizedURL
+                return url
             }
         )
     }
 
     func removeDirectoryAuthorization(_ directory: AuthorizedDirectory) {
-        do {
-            try authorizationStore.removeAuthorization(id: directory.id)
-            runtimeLog.authorizationRemoved(path: directory.path)
-            refresh()
-            refreshAuthorization()
-        } catch {
-            runtimeLog.authorizationRemoveFailed(error)
+        let store = authorizationStore
+        Task { [weak self] in
+            do {
+                try await Task.detached { try store.removeAuthorization(id: directory.id) }.value
+                self?.authorizedDirectories.removeAll { $0.id == directory.id }
+                self?.runtimeLog.authorizationRemoved(path: directory.path)
+                self?.refreshAuthorization()
+            } catch {
+                self?.runtimeLog.authorizationRemoveFailed(error)
+            }
         }
     }
 
@@ -157,16 +164,37 @@ final class TemplateSettingsModel: ObservableObject {
         runtimeLog.extensionSettingsOpened()
         FIFinderSyncController.showExtensionManagementInterface()
     }
+}
 
+extension TemplateSettingsModel {
     func refreshAuthorization() {
-        do {
-            let refreshed = try authorizationStore.authorizedDirectories()
-            if refreshed != authorizedDirectories {
-                authorizedDirectories = refreshed
-                runtimeLog.authorizationsLoaded(count: refreshed.count)
+        authorizationRefreshRequested = true
+        guard authorizationRefresh == nil else { return }
+        let shouldRetry = retryPendingAuthorizations
+        retryPendingAuthorizations = false
+        authorizationRefreshRequested = false
+        let store = authorizationStore
+        authorizationRefresh = Task { [weak self] in
+            do {
+                let refreshed = try await Task.detached {
+                    try store.authorizedDirectories(retryPending: shouldRetry)
+                }.value
+                guard let self else { return }
+                lastAuthorizationLoadError = nil
+                if refreshed != authorizedDirectories {
+                    authorizedDirectories = refreshed
+                    runtimeLog.authorizationsLoaded(count: refreshed.count)
+                }
+            } catch {
+                if self?.lastAuthorizationLoadError != error.localizedDescription {
+                    self?.runtimeLog.authorizationsLoadFailed(error)
+                }
+                self?.lastAuthorizationLoadError = error.localizedDescription
             }
-        } catch {
-            runtimeLog.authorizationsLoadFailed(error)
+            self?.authorizationRefresh = nil
+            if self?.authorizationRefreshRequested == true {
+                self?.refreshAuthorization()
+            }
         }
     }
 
@@ -189,10 +217,12 @@ final class TemplateSettingsModel: ObservableObject {
         panel.begin { [weak self] response in
             guard response == .OK, let directoryURL = panel.url else { return }
             Task { @MainActor [weak self] in
+                defer { directoryURL.stopAccessingSecurityScopedResource() }
                 guard let self else { return }
                 do {
                     let validatedURL = try validate(directoryURL)
-                    try authorizationStore.saveAuthorization(for: validatedURL)
+                    let store = authorizationStore
+                    try await Task.detached { try store.saveAuthorization(for: validatedURL) }.value
                     runtimeLog.authorizationAdded(path: validatedURL.path)
                     refresh()
                     refreshAuthorization()
@@ -202,7 +232,9 @@ final class TemplateSettingsModel: ObservableObject {
             }
         }
     }
+}
 
+extension TemplateSettingsModel {
     private func scheduleTemplateRefresh() {
         scheduledTemplateRefresh?.cancel()
         scheduledTemplateRefresh = Task { [weak self] in
@@ -258,6 +290,7 @@ extension TemplateSettingsModel {
     func monitorExtensionStatus() async {
         while !Task.isCancelled {
             refreshExtensionStatus()
+            refreshAuthorization()
             do {
                 try await Task.sleep(for: .seconds(1))
             } catch {

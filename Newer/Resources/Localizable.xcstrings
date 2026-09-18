@@ -6,13 +6,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to access the authorized folder: %@"
+            "value" : "Can't access folder: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法访问已授权目录\n%@"
+            "value" : "无法访问目录: %@"
           }
         }
       }
@@ -22,13 +22,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folder access authorization is no longer valid. Grant access again in Newer."
+            "value" : "Folder access is no longer valid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目录访问授权已失效, 请重新授权"
+            "value" : "目录授权已失效"
+          }
+        }
+      }
+    },
+    "error.authorization.invalid-configuration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access records are damaged or use an unsupported version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授权记录损坏或版本不支持"
           }
         }
       }
@@ -38,13 +54,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Folder access has not been granted. Grant access first."
+            "value" : "No folder access"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未授权访问目录, 请先完成授权"
+            "value" : "尚未授权目录"
           }
         }
       }
@@ -54,13 +70,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The current folder is outside the authorized locations: %@"
+            "value" : "Access not granted for this folder: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前目录不在授权范围内: %@"
+            "value" : "尚未授权此目录: %@"
           }
         }
       }
@@ -70,13 +86,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to save authorization."
+            "value" : "Can't read or save access records."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存授权信息"
+            "value" : "无法读写授权记录"
           }
         }
       }
@@ -102,13 +118,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The destination is missing or not a folder\n%@"
+            "value" : "Destination folder is missing or unavailable: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标不存在或非目录\n%@"
+            "value" : "目标文件夹不存在或无法使用: %@"
           }
         }
       }
@@ -134,13 +150,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to generate a unique file name for “%@”."
+            "value" : "Can't find an available file name: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法为「%@」生成唯一文件名"
+            "value" : "无法找到可用的文件名: %@"
           }
         }
       }
@@ -150,13 +166,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to read template information: %@"
+            "value" : "Can't read template details: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法获取模板信息: %@"
+            "value" : "无法读取模板信息: %@"
           }
         }
       }
@@ -188,7 +204,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用启动"
+            "value" : "应用已启动"
           }
         }
       }
@@ -198,13 +214,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to grant access"
+            "value" : "Failed to add folder access"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加授权失败"
+            "value" : "添加目录授权失败"
           }
         }
       }
@@ -214,13 +230,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Access granted"
+            "value" : "Folder access saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "授权已添加"
+            "value" : "目录授权已保存"
           }
         }
       }
@@ -262,13 +278,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to load authorized locations"
+            "value" : "Failed to load authorized folders"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加载授权位置失败"
+            "value" : "读取授权目录失败"
           }
         }
       }
@@ -278,13 +294,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authorized locations loaded"
+            "value" : "Authorized folders loaded"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "授权位置已加载"
+            "value" : "已读取授权目录"
           }
         }
       }
@@ -294,13 +310,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to remove access"
+            "value" : "Failed to remove folder access"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除授权失败"
+            "value" : "移除目录授权失败"
           }
         }
       }
@@ -310,13 +326,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Access removed"
+            "value" : "Folder access removed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "授权已移除"
+            "value" : "目录授权已移除"
           }
         }
       }
@@ -406,13 +422,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to save templates"
+            "value" : "Failed to save template settings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存模板失败"
+            "value" : "保存模板设置失败"
           }
         }
       }
@@ -422,13 +438,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Template status updated"
+            "value" : "Template enabled status updated"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模板状态已更新"
+            "value" : "模板启用状态已更新"
           }
         }
       }
@@ -817,23 +833,6 @@
         }
       }
     },
-    "settings.logs.source-filter" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Source"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "来源"
-          }
-        }
-      }
-    },
     "settings.logs.source.all" : {
       "localizations" : {
         "en" : {
@@ -946,6 +945,22 @@
         }
       }
     },
+    "settings.permissions.file-access.extension-disabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder extension not enabled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未启用 Finder 扩展"
+          }
+        }
+      }
+    },
     "settings.permissions.file-access.external-disk" : {
       "localizations" : {
         "en" : {
@@ -958,6 +973,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外部磁盘"
+          }
+        }
+      }
+    },
+    "settings.permissions.file-access.needs-authorization" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant access again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要重新授权"
           }
         }
       }
@@ -983,7 +1014,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose a folder to authorize."
+            "value" : "Choose a folder to authorize"
           }
         },
         "zh-Hans" : {
@@ -1015,7 +1046,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select the external disk itself under /Volumes, not a folder inside it."
+            "value" : "Select the root folder of an external disk."
           }
         },
         "zh-Hans" : {
@@ -1031,7 +1062,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select an external disk root to create files."
+            "value" : "Select the root folder of an external disk."
           }
         },
         "zh-Hans" : {
@@ -1070,6 +1101,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "访问权限"
+          }
+        }
+      }
+    },
+    "settings.permissions.file-access.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂不可用"
           }
         }
       }

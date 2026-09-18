@@ -43,6 +43,8 @@ nonisolated enum RuntimeLogEvent: String, Codable, Sendable {
     case finderStarted = "finder.started"
     case finderTargetUnavailable = "finder.target-unavailable"
     case finderAuthorizationLoadFailed = "finder.authorization-load-failed"
+    case finderAuthorizationsPrepared = "finder.authorizations-prepared"
+    case finderAuthorizationPreparationFailed = "finder.authorization-prepare-failed"
     case finderTargetUnauthorized = "finder.target-unauthorized"
     case finderTemplatesLoadFailed = "finder.templates-load-failed"
     case finderMenuResolutionFailed = "finder.menu-resolution-failed"

@@ -131,7 +131,7 @@ xcodebuild -project Newer.xcodeproj -scheme Newer -configuration Debug -destinat
 - Finder 扩展：验证启用状态、Finder 右键菜单、当前目录解析、未授权提示以及主应用与扩展读取同一配置
 - 文件创建：验证普通文件模板、同名冲突、扩展名保留、失败清理和越界路径拒绝
 - 日志：验证主应用与扩展写入、轮转或截断、刷新和清空行为
-- 本地化或界面：验证简体中文和英文显示、窗口最小尺寸、长文本和 VoiceOver label
+- 本地化或界面：验证简体中文和英文显示、窗口最小尺寸和长文本
 
 `Scripts/build.sh` 会使用 Developer ID 签名、访问 Apple 公证服务并覆盖 `Build/Newer.app`；`Scripts/dmg.sh` 只接受已签名且已公证的 App。除非用户明确要求发布产物，否则不要把这两个脚本作为日常验证命令。
 
