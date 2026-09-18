@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+Build/
+*.xcarchive
+*.xcresult
+*.profraw
+*.dSYM
+*.moved-aside
+
+# User-specific Xcode state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# sourcekit-lsp / xcode-build-server
+buildServer.json
+.compile
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Code signing inspection output
+codesign0
+codesign1
+codesign2
+
+# Archives and exported apps
+*.ipa
+*.pkg
+*.dmg
+*.zip
+*.app
+
+# Logs
+*.log
+
+# Performance reports
+/Performance/
+
+# Editor
+.zed/
+
+# Agent Tools
+.agents/
+.claude/
+.specify/
