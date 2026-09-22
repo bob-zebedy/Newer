@@ -417,6 +417,22 @@
         }
       }
     },
+    "log.finder.directory-observation-refresh-failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to refresh Finder menu locations; retaining the previous locations"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新 Finder 菜单监听目录失败, 保留上次监听范围"
+          }
+        }
+      }
+    },
     "log.finder.identifier-conflict" : {
       "localizations" : {
         "en" : {

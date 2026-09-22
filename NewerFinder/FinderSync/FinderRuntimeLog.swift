@@ -24,6 +24,14 @@ nonisolated struct FinderRuntimeLog: Sendable {
         )
     }
 
+    func directoryObservationRefreshFailed() {
+        logger.error(
+            category: .finderMenu,
+            event: .finderTargetUnavailable,
+            message: String(localized: "log.finder.directory-observation-refresh-failed")
+        )
+    }
+
     func authorizationLoadFailed(_ error: Error) {
         logger.error(
             category: .finderMenu,

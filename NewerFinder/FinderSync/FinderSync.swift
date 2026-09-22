@@ -12,6 +12,7 @@ final class FinderSync: FIFinderSync {
     private let templateMapLock = NSLock()
     private var templateRelativePathByTag: [Int: String] = [:]
     private var authorizationObserver: NSObjectProtocol?
+    private var volumeObservers: [NSObjectProtocol] = []
     private lazy var menuIcon: NSImage? = {
         let applicationURL = Bundle.main.bundleURL
             .deletingLastPathComponent()
@@ -38,14 +39,15 @@ final class FinderSync: FIFinderSync {
         Self.creationQueue.async {
             Self.prepareFinderAuthorizations()
         }
-        FIFinderSyncController.default().directoryURLs = [
-            URL(fileURLWithPath: "/", isDirectory: true)
-        ]
+        observeVolumes()
     }
 
     deinit {
         if let authorizationObserver {
             DistributedNotificationCenter.default().removeObserver(authorizationObserver)
+        }
+        for observer in volumeObservers {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
         }
     }
 
@@ -273,6 +275,40 @@ final class FinderSync: FIFinderSync {
             throw FileCreationError.invalidTemplatePath
         }
         return template.relativePath
+    }
+}
+
+private extension FinderSync {
+    func observeVolumes() {
+        // 先订阅再枚举, 避免初始化期间遗漏卷变化
+        volumeObservers = [
+            NSWorkspace.didMountNotification,
+            NSWorkspace.didUnmountNotification,
+            NSWorkspace.didRenameVolumeNotification
+        ].map { name in
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: name, object: nil, queue: nil
+            ) { _ in
+                DispatchQueue.main.async { Self.refreshObservedDirectories() }
+            }
+        }
+        DispatchQueue.main.async { Self.refreshObservedDirectories() }
+    }
+
+    @MainActor static func refreshObservedDirectories() {
+        let controller = FIFinderSyncController.default()
+        let root = URL(fileURLWithPath: "/", isDirectory: true)
+        let directories: Set<URL>
+        if let volumes = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: nil, options: []) {
+            // 根目录监听不能替代独立挂载卷的注册, 菜单可见性也不代表读写授权
+            directories = Set(volumes.map(\.standardizedFileURL)).union([root])
+        } else {
+            directories = (controller.directoryURLs ?? []).union([root])
+            runtimeLog.directoryObservationRefreshFailed()
+        }
+        if controller.directoryURLs != directories {
+            controller.directoryURLs = directories
+        }
     }
 }
 
